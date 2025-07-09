@@ -1,0 +1,58 @@
+name: Primary
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.7
+
+      - name: Set Variables
+        run: |
+          export APP=openbrighton
+          STAGE=main
+          export STACK_PREFIX=$APP-$STAGE
+
+          echo "STACK_NAME=$STACK_PREFIX-hosted-zone" >> $GITHUB_ENV
+          echo "SSM_NAMESPACE=/$APP/$STAGE" >> $GITHUB_ENV
+
+          export SSM_NAMESPACE=/$APP/$STAGE
+
+          echo "SSM_NAMESPACE=$SSM_NAMESPACE" >> $GITHUB_ENV
+          echo "STACK_PREFIX=$STACK_PREFIX" >> $GITHUB_ENV
+          echo "STAGE_NAME=v1" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Validate
+        run: |
+          aws cloudformation validate-template \
+          --template-body file://./infra/template.yml \
+          --region ${{ secrets.AWS_REGION }}
+
+      - name: Deploy Infrastructure
+        run: |
+          aws cloudformation deploy \
+          --stack-name $STACK_PREFIX-api-gateway \
+          --template-file ./infra/template.yml \
+          --no-fail-on-empty-changeset \
+          --region ${{ secrets.AWS_REGION }} \
+          --parameter-overrides \
+              DomainName=$SSM_NAMESPACE/domain \
+              SSMNamespace=$SSM_NAMESPACE \
+              ApiName=$STACK_PREFIX-api-gateway \
+              StageName=$STAGE_NAME \
+              HostedZoneId=$SSM_NAMESPACE/hosted-zone/id
