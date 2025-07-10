@@ -32,6 +32,21 @@ Resources:
     Properties:
       Name: !Ref ApiName
       ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins:
+          - "https://*.openbrighton.org"
+          - "https://openbrighton.org"
+        AllowMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "PATCH"
+          - "DELETE"
+          - "OPTIONS"
+          - "HEAD"
+        AllowHeaders:
+          - "Content-Type"
+          - "Authorization"
 
   Stage:
     Type: AWS::ApiGatewayV2::Stage
