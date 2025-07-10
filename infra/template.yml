@@ -34,7 +34,7 @@ Resources:
       ProtocolType: HTTP
       CorsConfiguration:
         AllowOrigins:
-          - "https://*.openbrighton.org"
+          - "https://api.openbrighton.org"
           - "https://openbrighton.org"
         AllowMethods:
           - "GET"
