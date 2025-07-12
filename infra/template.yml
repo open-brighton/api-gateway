@@ -36,6 +36,9 @@ Resources:
         AllowOrigins:
           - "https://api.openbrighton.org"
           - "https://openbrighton.org"
+          # TODO: remove these once you have a dev environment
+          - "http://localhost"
+          - "http://localhost:3000"
         AllowMethods:
           - "GET"
           - "POST"
